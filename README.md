@@ -91,14 +91,13 @@ face-attend/
 │     ├ register.js            # Registration React logic
 │     ├ sw.js                  # Service Worker
 │     └ face-api.min.js        # face-api UMD (CDN fallback)
-└─ server/
-   ├ models/
-   │  ├ User.js                # Mongoose User schema
-   │  └ Attendance.js           # Mongoose Attendance schema
-   ├ routes/
-   │  ├ users.js               # /api/users endpoints
-   │  └ attendance.js          # /api/attendance endpoints
-   └ index.js                    # Express entry point
+├ models/
+│  ├ User.js                # Mongoose User schema
+│  └ Attendance.js           # Mongoose Attendance schema
+├ routes/
+│  ├ users.js               # /api/users endpoints
+│  └ attendance.js          # /api/attendance endpoints
+└ index.js                    # Express entry point
 ```
 
 ## 6. Setup & Run Instructions
@@ -106,18 +105,18 @@ face-attend/
 1. **Clone & Install**
 
    ```bash
-   git clone https://github.com/Sachin9548/Face-Recognition-Attendance-System.git face-attend && cd face-attend
+   git clone https://github.com/Sachin9548/Face-Recognition-Attendance-System.git && cd face-attend
    npm install express mongoose cors body-parser
    ```
 
 2. **Configure MongoDB**
 
-   * Update connection string in `server/app.js` (uses Atlas or local `mongodb://localhost/face_attend`).
+   * Update connection string in `index.js` (uses Atlas).
 
 3. **Start the Server**
 
    ```bash
-   node server/app.js
+   node index.js
    ```
 
 4. **Access the App**
