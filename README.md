@@ -106,7 +106,7 @@ face-attend/
 1. **Clone & Install**
 
    ```bash
-   git clone <repo-url> face-attend && cd face-attend
+   git clone https://github.com/Sachin9548/Face-Recognition-Attendance-System.git face-attend && cd face-attend
    npm install express mongoose cors body-parser
    ```
 
