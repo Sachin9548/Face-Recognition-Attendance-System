@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Face Attendance</title>
+    <style>
+      body { font-family: Arial, text-align: center; margin: 2rem; }
+      video { width: 300px; margin: 1rem auto; display: block; }
+      button { margin: 0.5rem; padding: 0.5rem 1rem; }
+    </style>
+    <link rel="stylesheet" href="styles.css">
+
+  </head>
+  <body>
+    <h1>Mark Attendance</h1>
+    <button id="startCamera">Start Camera</button>
+    <button id="captureAttendance" disabled>Capture &amp; Mark</button>
+    <video id="video" autoplay muted hidden></video>
+    <h2>Registered Users</h2>
+    <table id="usersTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Aadhaar</th>
+          <th>User ID</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h2>Attendance Records</h2>
+    <table id="attendanceTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <!-- 1) face-api.js -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"
+    ></script>
+    <script defer src="app.js"></script>
+
+    <script>
+      // 1) Populate users table
+      fetch("/api/users")
+        .then((res) => {
+          if (!res.ok) throw new Error(res.statusText);
+          return res.json();
+        })
+        .then((users) => {
+          const tbody = document.querySelector("#usersTable tbody");
+          tbody.innerHTML = ""; // clear existing rows
+          users.forEach((u) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${u.name}</td>
+              <td>${u.aadhaar || ""}</td>
+              <td>${u._id}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        })
+        .catch((err) => console.error("Users load error:", err));
+
+      // 2) Populate attendance table
+      fetch("/api/attendance")
+        .then((res) => {
+          if (!res.ok) throw new Error(res.statusText);
+          return res.json();
+        })
+        .then((records) => {
+          const tbody = document.querySelector("#attendanceTable tbody");
+          tbody.innerHTML = "";
+          records.forEach((r) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${r.userId.name}</td>
+              <td>${new Date(r.timestamp).toLocaleString()}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        })
+        .catch((err) => console.error("Attendance load error:", err));
+    </script>
+  </body>
+</html>
