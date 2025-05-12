@@ -16,10 +16,7 @@ const db = process.env.MONGO_URI;
 
 const app = express();
 mongoose
-      .connect(db, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-      })
+      .connect(db)
       .then(() => console.log("🗄️  MongoDB connected"))
       .catch((err) => console.error("MongoDB connection error:", err));
 
