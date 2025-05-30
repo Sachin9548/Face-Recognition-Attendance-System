@@ -8,13 +8,24 @@
       body { font-family: Arial, text-align: center; margin: 2rem; }
       video { width: 300px; margin: 1rem auto; display: block; }
       button { margin: 0.5rem; padding: 0.5rem 1rem; }
+     .newbtn {
+  display: inline-block;
+  background-color: #007bff;      /* primary blue */
+  color: #fff;                     /* white text */
+  padding: 0.5rem 1rem;            /* vertical/horizontal padding */
+  font-size: 1rem;                 /* comfortable font size */
+  font-weight: 600;                /* semi-bold */
+  text-decoration: none;           /* remove underline */
+  border-radius: 4px;              /* rounded corners */
+  transition: background-color .2s ease;
+}
     </style>
     <link rel="stylesheet" href="styles.css">
 
   </head>
   <body>
     <h1>Mark Attendance</h1>
-    <button > <a href="/register.html">Register New User</a> </button>
+    <button > <a class="newbtn" href="/register.html">Register New User</a> </button>
     <button id="startCamera">Start Camera</button>
     <button id="captureAttendance" disabled>Capture &amp; Mark</button>
     <video id="video" autoplay muted hidden></video>
