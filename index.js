@@ -6,6 +6,8 @@ const path = require("path");
 const dotenv = require("dotenv");
 const userRoutes = require("./routes/users");
 const attRoutes = require("./routes/attendance");
+const User = require("./models/User");
+const Attendance = require("./models/Attendance");
 
 dotenv.config();
 
@@ -27,6 +29,16 @@ app.use("/models", express.static(path.join(__dirname, "./public/models")));
 
 app.use("/api/users", userRoutes);
 app.use("/api/attendance", attRoutes);
+
+app.post("/api/mark-attendance-manual", async (req, res) => {
+      console.log("req come");
+      const { aadhaar } = req.body;
+      const user = await User.findOne({ aadhaar });
+      if (!user) return res.json({ success: false, message: "User not found" });
+
+      await Attendance.create({ userId: user._id, timestamp: new Date() });
+      res.json({ success: true });
+});
 
 app.use(express.static("public"));
 
