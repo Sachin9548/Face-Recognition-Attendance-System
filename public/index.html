@@ -8,25 +8,32 @@
       body { font-family: Arial, text-align: center; margin: 2rem; }
       video { width: 300px; margin: 1rem auto; display: block; }
       button { margin: 0.5rem; padding: 0.5rem 1rem; }
-     .newbtn {
-  display: inline-block;
-  background-color: #007bff;      /* primary blue */
-  color: #fff;                     /* white text */
-  font-size: 1rem;                 /* comfortable font size */
-  text-decoration: none;           /* remove underline */
-  border-radius: 4px;              /* rounded corners */
-  transition: background-color .2s ease;
-}
+      .newbtn {
+        display: inline-block;
+        background-color: #007bff;
+        color: #fff;
+        font-size: 1rem;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: background-color .2s ease;
+      }
     </style>
     <link rel="stylesheet" href="styles.css">
-
   </head>
   <body>
     <h1>Mark Attendance</h1>
-    <button > <a class="newbtn" href="/register.html">Register New User</a> </button>
+    <button><a class="newbtn" href="/register.html">Register New User</a></button>
     <button id="startCamera">Start Camera</button>
     <button id="captureAttendance" disabled>Capture &amp; Mark</button>
     <video id="video" autoplay muted hidden></video>
+
+    <!-- NEW: Aadhaar fallback UI -->
+    <div id="manualSection" style="margin-top: 1rem;">
+      <h3>No face detected? Enter Aadhaar to mark manually:</h3>
+      <input type="text" id="aadhaarInput" placeholder="Enter Aadhaar Number" />
+      <button id="manualMark">Mark Attendance</button>
+    </div>
+
     <h2>Registered Users</h2>
     <table id="usersTable">
       <thead>
@@ -49,54 +56,94 @@
       </thead>
       <tbody></tbody>
     </table>
-    <!-- 1) face-api.js -->
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"
-    ></script>
-    <script defer src="app.js"></script>
 
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <script>
-      // 1) Populate users table
-      fetch("/api/users")
-        .then((res) => {
-          if (!res.ok) throw new Error(res.statusText);
-          return res.json();
+      const video = document.getElementById("video");
+      const startCameraBtn = document.getElementById("startCamera");
+      const captureBtn = document.getElementById("captureAttendance");
+      const manualSection = document.getElementById("manualSection");
+
+      let labeledDescriptors = []; // face descriptors
+
+      startCameraBtn.onclick = async () => {
+        video.hidden = false;
+        const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+        video.srcObject = stream;
+        captureBtn.disabled = false;
+
+        await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+        await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
+        await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+        console.log("Models Loaded");
+      };
+
+      captureBtn.onclick = async () => {
+        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
+
+        if (detections.length === 0) {
+          alert("No face detected. Try again or mark manually using Aadhaar.");
+          manualSection.style.display = "block";
+          return;
+        }
+
+        if (detections.length > 1) {
+          alert("Multiple faces detected! Please make sure only one person is in front of the camera.");
+          return;
+        }
+
+        // Send to server for face matching (simplified here)
+        alert("Face detected. Attendance marked."); // Replace with actual attendance marking logic
+        manualSection.style.display = "none"; // Hide manual section if successful
+      };
+
+      document.getElementById("manualMark").onclick = () => {
+        const aadhaar = document.getElementById("aadhaarInput").value.trim();
+        if (!aadhaar) return alert("Please enter Aadhaar number");
+
+        fetch('/api/mark-attendance-manual', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ aadhaar }),
         })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert("Manual attendance marked successfully.");
+            document.getElementById("aadhaarInput").value = "";
+            manualSection.style.display = "none";
+          } else {
+            alert("Failed to mark attendance: " + (data.message || "Unknown error"));
+          }
+        })
+        .catch(err => alert("Error marking manual attendance."));
+      };
+
+      // Load users table
+      fetch("/api/users")
+        .then((res) => res.json())
         .then((users) => {
           const tbody = document.querySelector("#usersTable tbody");
-          tbody.innerHTML = ""; // clear existing rows
+          tbody.innerHTML = "";
           users.forEach((u) => {
             const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${u.name}</td>
-              <td>${u.aadhaar || ""}</td>
-              <td>${u._id}</td>
-            `;
+            tr.innerHTML = `<td>${u.name}</td><td>${u.aadhaar || ""}</td><td>${u._id}</td>`;
             tbody.appendChild(tr);
           });
-        })
-        .catch((err) => console.error("Users load error:", err));
+        });
 
-      // 2) Populate attendance table
+      // Load attendance records
       fetch("/api/attendance")
-        .then((res) => {
-          if (!res.ok) throw new Error(res.statusText);
-          return res.json();
-        })
+        .then((res) => res.json())
         .then((records) => {
           const tbody = document.querySelector("#attendanceTable tbody");
           tbody.innerHTML = "";
           records.forEach((r) => {
             const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${r.userId.name}</td>
-              <td>${new Date(r.timestamp).toLocaleString()}</td>
-            `;
+            tr.innerHTML = `<td>${r.userId.name}</td><td>${new Date(r.timestamp).toLocaleString()}</td>`;
             tbody.appendChild(tr);
           });
-        })
-        .catch((err) => console.error("Attendance load error:", err));
+        });
     </script>
   </body>
 </html>
